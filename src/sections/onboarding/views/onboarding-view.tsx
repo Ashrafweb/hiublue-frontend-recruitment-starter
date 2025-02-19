@@ -1,5 +1,14 @@
-'use client';
+"use client";
 
-export default function OnboardingView(){
-  return <>Onboarding View</>;
+import { Box } from "@mui/material";
+import CreateOfferForm from "../CreateOfferForm";
+
+export default function OnboardingView() {
+  return (
+    <Box>
+      <Box>
+        <CreateOfferForm />
+      </Box>
+    </Box>
+  );
 }

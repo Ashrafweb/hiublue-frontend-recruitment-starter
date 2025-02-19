@@ -1,10 +1,14 @@
+import DashboardLayout from "@/sections/dashboard/layout";
 import OnboardingView from "@/sections/onboarding/views/onboarding-view";
 
 export const metadata = {
-    title: 'Onboarding',
+  title: "Onboarding",
 };
 
-
 export default function Page() {
-    return <OnboardingView/>;
+  return (
+    <DashboardLayout>
+      <OnboardingView />
+    </DashboardLayout>
+  );
 }
