@@ -1,4 +1,4 @@
-import { Barlow, Public_Sans } from "next/font/google";
+import { Barlow, Public_Sans, Inter, Inter_Tight } from "next/font/google";
 
 // ----------------------------------------------------------------------
 
@@ -39,19 +39,19 @@ declare module "@mui/material/styles" {
   }
 }
 
-export const primaryFont = Public_Sans({
+export const primaryFont = Inter({
   style: "normal",
   weight: ["400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
-  display: "swap",
-  fallback: ["Inter Sans Serif, sans-serif", "Arial", "sans-serif"],
+  display: "block",
+  fallback: ["sans-serif", "Arial"],
 });
 
 export const secondaryFont = Barlow({
   weight: ["400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
   display: "swap",
-  fallback: ["Inter Sans Serif, sans-serif", "Arial", "sans-serif"],
+  fallback: ["sans-serif", "Arial"],
 });
 
 // ----------------------------------------------------------------------

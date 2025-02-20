@@ -3,10 +3,14 @@ import {
   Card,
   CardContent,
   Typography,
-  Grid,
   CardActionArea,
+  useTheme,
+  Box,
 } from "@mui/material";
-import { ArrowDownward, ArrowUpward } from "@mui/icons-material";
+import Image from "next/image";
+import altArrowUp from "public/alt-arrow-up-bold-duotone.svg";
+import altArrowDown from "public/alt-arrow-down-bold-duotone.svg";
+import { formatPercentageChange } from "@/lib/formatData";
 
 interface CardProps {
   title: string;
@@ -21,66 +25,80 @@ const SummaryCard = ({
   previousValue,
   unit = "",
 }: CardProps) => {
-  const percentageChange = () => {
-    if (previousValue === 0) return 0;
-    return ((currentValue - previousValue) / previousValue) * 100;
-  };
+  const theme = useTheme();
 
-  const change = percentageChange();
-  const icon =
-    change > 0 ? (
-      <ArrowUpward
-        sx={{
-          fontSize: "1rem",
-          color: "success.main",
-          verticalAlign: "middle",
-          mr: 0.5,
-        }}
-      />
-    ) : change < 0 ? (
-      <ArrowDownward
-        sx={{
-          fontSize: "1rem",
-          color: "error.main",
-          verticalAlign: "middle",
-          mr: 0.5,
-        }}
-      />
-    ) : null;
+  const percentageChange = previousValue
+    ? ((currentValue - previousValue) / previousValue) * 100
+    : 0;
+
+  const isPositive = percentageChange > 0;
+  const isNegative = percentageChange < 0;
+
+  const icon = isPositive ? altArrowUp : isNegative ? altArrowDown : null;
 
   return (
     <Card sx={{ width: "100%", boxShadow: 3, height: "100%" }}>
-      {" "}
-      {/* Added height:100% */}
       <CardActionArea
         sx={{
-          height: "100%", // Added height:100%
+          height: "100%",
           "&[data-active]": {
             backgroundColor: "action.selected",
-            "&:hover": {
-              backgroundColor: "action.selectedHover",
-            },
+            "&:hover": { backgroundColor: "action.selectedHover" },
           },
         }}
       >
-        <CardContent sx={{ height: "100%" }}>
-          {" "}
-          {/* Added height:100% */}
-          <Typography variant='h5' component='div'>
+        <CardContent
+          sx={{
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            gap: 1.5,
+          }}
+        >
+          {/* Title */}
+          <Typography variant='h6' component='h2' fontWeight={600}>
             {title}
           </Typography>
-          <Typography variant='h3' fontWeight={800} component='div'>
-            {currentValue} {unit}
+
+          {/* Current Value */}
+          <Typography
+            variant='h3'
+            fontWeight={700}
+            sx={{ fontFamily: theme.typography.fontSecondaryFamily }}
+          >
+            {currentValue}
+            {unit}
           </Typography>
-          <Typography variant='h5' component='div'>
-            <Typography variant='h5' component='span' fontWeight={700}>
-              {icon}
-              {Math.abs(change).toFixed(1)}%
+
+          {/* Change Percentage */}
+          <Box display='flex' alignItems='center' gap={0.8}>
+            {icon && (
+              <Image
+                src={icon}
+                alt={isPositive ? "Increase" : "Decrease"}
+                height={20}
+                width={20}
+                aria-hidden='true'
+              />
+            )}
+            <Typography
+              variant='h5'
+              fontWeight={700}
+              color={
+                isPositive
+                  ? "success.main"
+                  : isNegative
+                  ? "error.main"
+                  : "text.secondary"
+              }
+            >
+              {formatPercentageChange(percentageChange)}
             </Typography>
-            <span style={{ fontWeight: 400, fontSize: 16 }}>
-              &nbsp; previous month
-            </span>
-          </Typography>
+            <Typography variant='body2' color='text.secondary'>
+              previous month
+            </Typography>
+          </Box>
         </CardContent>
       </CardActionArea>
     </Card>

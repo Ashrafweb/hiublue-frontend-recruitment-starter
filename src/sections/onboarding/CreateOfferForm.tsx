@@ -417,12 +417,25 @@ const CreateOfferForm = () => {
             color='secondary'
             type='submit'
             disabled={isLoading}
-            sx={{ bgcolor: "#000", mt: 4 }} // Remove : "center" (typo)
+            sx={{
+              bgcolor: "#000",
+              py: 1.5,
+              px: 4,
+              mt: 2,
+              "&:hover": {
+                bgcolor: "#333",
+              },
+              "&:focus-visible": {
+                outline: "2px solid #000",
+                outlineOffset: 2,
+              },
+            }}
+            aria-label={isLoading ? "Sending offer..." : "Send offer"}
           >
             {isLoading ? (
               <CircularProgress size={20} color='inherit' />
             ) : (
-              "Create Offer"
+              "Send Offer"
             )}{" "}
           </Button>
         </Grid>
@@ -430,8 +443,8 @@ const CreateOfferForm = () => {
       <SuccessModal
         open={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}
-        message={successMessage} // Pass the success message here
-        title='Offer Created!' // Optional: Set a custom title
+        message={successMessage}
+        title='Offer Created!'
       />
     </>
   );

@@ -96,7 +96,7 @@ export default function DashboardView() {
 
   return (
     <Box sx={{ flexGrow: 1, p: 3, maxWidth: "1500px", margin: "auto" }}>
-      <Box sx={{ mb: 4, ml: 5 }}>
+      <Box sx={{ mb: 4, mx: 2 }}>
         <Grid container justifyContent='space-between'>
           <Typography variant='h3' component='h1' gutterBottom>
             Dashboard

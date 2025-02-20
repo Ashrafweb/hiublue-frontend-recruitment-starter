@@ -18,17 +18,24 @@ import {
   MenuItem,
   Typography,
   Divider,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
+import Image, { StaticImageData } from "next/image";
 import MenuIcon from "@mui/icons-material/Menu";
-import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
-import SpeedIcon from "@mui/icons-material/Speed";
-import Image from "next/image";
-const drawerWidth = 240; // Full width
-const collapsedWidth = 70; // Collapsed width
+
+// Assets
+import avatarUrl from "public/Img_Avatar.svg";
+import dashboardIcon from "public/dashboard_icon.svg";
+import onboardingIcon from "public/onboarding_icon.svg";
+
+// Constants
+const DRAWER_WIDTH = 240;
+const COLLAPSED_WIDTH = 70;
 
 const navItems = [
-  { text: "Dashboard", icon: <SpeedIcon />, path: "/" },
-  { text: "Onboarding", icon: <ShoppingBagIcon />, path: "/onboarding" },
+  { text: "Dashboard", icon: dashboardIcon, path: "/" },
+  { text: "Onboarding", icon: onboardingIcon, path: "/onboarding" },
 ];
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
@@ -36,39 +43,56 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   return (
     <Box sx={{ display: "flex" }}>
       {/* Navbar */}
       <AppBar
         position='fixed'
         color='default'
-        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        sx={{ zIndex: theme.zIndex.drawer + 1 }}
       >
         <Toolbar>
-          {/* <IconButton
+          <IconButton
             color='inherit'
-            aria-label='open drawer'
+            aria-label='Toggle navigation menu'
             edge='start'
             onClick={() => setIsDrawerOpen(!isDrawerOpen)}
             sx={{ mr: 2 }}
           >
             <MenuIcon />
-          </IconButton> */}
-          <Typography variant='h6' component='a' href='/' sx={{ flexGrow: 1 }}>
+          </IconButton>
+
+          <Typography
+            variant='h6'
+            component='a'
+            href='/'
+            sx={{ flexGrow: 1, textDecoration: "none" }}
+          >
             <Image
               src='/hiublue.png'
               width={30}
               height={30}
-              alt='hiublue-logo'
+              alt='HIU Logo'
+              priority
             />
           </Typography>
+
           {/* Profile Avatar */}
           <IconButton
             color='inherit'
+            aria-label='User menu'
             onClick={(e) => setAnchorEl(e.currentTarget)}
+            sx={{ border: "1px solid #5BE49B", p: 0.5 }}
           >
-            <Avatar alt='User Avatar' />
+            <Avatar
+              src={(avatarUrl as StaticImageData).src}
+              alt='User Avatar'
+            />
           </IconButton>
+
           {/* Profile Menu */}
           <Menu
             anchorEl={anchorEl}
@@ -76,23 +100,23 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             onClose={() => setAnchorEl(null)}
             anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
             transformOrigin={{ horizontal: "right", vertical: "top" }}
+            PaperProps={{ sx: { width: "120px" } }}
           >
-            <MenuItem>Profile</MenuItem>
-            <MenuItem>Settings</MenuItem>
-            <MenuItem>Logout</MenuItem>
+            <MenuItem sx={{ textAlign: "center" }}>Logout</MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>
 
       {/* Sidebar */}
       <Drawer
-        variant='permanent'
+        variant={isMobile ? "temporary" : "permanent"}
         open={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
         sx={{
-          width: isDrawerOpen ? drawerWidth : collapsedWidth,
+          width: isDrawerOpen ? DRAWER_WIDTH : COLLAPSED_WIDTH,
           flexShrink: 0,
           "& .MuiDrawer-paper": {
-            width: isDrawerOpen ? drawerWidth : collapsedWidth,
+            width: isDrawerOpen ? DRAWER_WIDTH : COLLAPSED_WIDTH,
             transition: "width 0.3s ease-in-out",
             overflowX: "hidden",
           },
@@ -100,30 +124,37 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       >
         <Toolbar />
         <Divider />
+
         <List>
-          <ListItem>
+          <ListItem sx={{ display: isDrawerOpen ? "block" : "none", px: 2 }}>
             <Typography
-              style={{
-                fontSize: "14px",
-              }}
-              variant='h6'
+              variant='subtitle2'
               fontWeight={600}
-              color='#989898'
+              color='textSecondary'
             >
               OVERVIEW
             </Typography>
           </ListItem>
-          {navItems.map((item, index) => (
+
+          {navItems.map(({ text, icon, path }, index) => (
             <ListItem
               key={index}
               disablePadding
               component='a'
-              style={{ color: "black" }}
-              href={item.path}
+              href={path}
+              style={{ color: "#000" }}
             >
               <ListItemButton>
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                {isDrawerOpen && <ListItemText primary={item.text} />}
+                <ListItemIcon>
+                  <Image
+                    src={icon}
+                    alt={`${text} icon`}
+                    width={30}
+                    height={30}
+                    priority
+                  />
+                </ListItemIcon>
+                {isDrawerOpen && <ListItemText primary={text} />}
               </ListItemButton>
             </ListItem>
           ))}

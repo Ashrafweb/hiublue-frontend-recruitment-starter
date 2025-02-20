@@ -42,6 +42,7 @@ const MuiTableWithSearchSortFilter = () => {
   const [typeFilter, settypeFilter] = useState<DataItem["type"] | "">("");
   const [statusFilter, setStatusFilter] = useState<OfferStatus>("all");
   const [tableData, setTableData] = useState<TableData["data"]>([]);
+  const [displayedData, setDisplayedData] = useState<TableData["data"]>([]);
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(5);
   const [rows, setRows] = useState<number>(0);
@@ -50,14 +51,22 @@ const MuiTableWithSearchSortFilter = () => {
   useEffect(() => {
     const fetchData = async () => {
       const data = await getTableData();
-      setTableData(data);
+      paginateTable(data);
     };
     fetchData();
+  }, []);
+  useEffect(() => {
+    paginateTable(tableData);
   }, [page, rowsPerPage]);
 
+  const paginateTable = (tbData: TableData["data"]) => {
+    const startIndex = page * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    setTableData(tbData);
+    setDisplayedData(tbData.slice(startIndex, endIndex));
+  };
   const getTableData = async () => {
-    // API might be 1-based for pages so we pass page + 1
-    const query = `page=${page + 1}&per_page=${rowsPerPage}`;
+    const query = `page=${page + 1}&per_page=${40}`;
     const result = await getOfferList(query);
     setRows(result?.meta.total || 0);
     return result.data;
@@ -109,7 +118,7 @@ const MuiTableWithSearchSortFilter = () => {
   };
 
   // Filter data: by search text, typeFilter, and statusFilter
-  const filteredData: FilteredDataItem[] = (tableData || [])
+  const filteredData: FilteredDataItem[] = (displayedData || [])
     .filter((item: DataItem) => {
       const searchRegex = new RegExp(searchText, "i");
       return Object.values(item).some((value) =>
