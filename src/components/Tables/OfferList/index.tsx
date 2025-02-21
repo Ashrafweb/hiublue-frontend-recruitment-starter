@@ -24,18 +24,18 @@ import {
   Tabs,
   Tab,
   Typography,
+  Skeleton,
 } from "@mui/material";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import { ModeEdit, MoreVertOutlined } from "@mui/icons-material";
 import MyChip from "@/theme/overrides/components/mychip";
-import { columns, DataItem, TableData } from "./data";
+import { DataItem, TableData } from "@/types";
+import { columns } from "./data";
 import { getOfferList } from "@/lib/apiClient";
 import { StyledTab, StyledTabs } from "@/theme/overrides/components/styledTabs";
-
-// Define a union type for status filter for type safety
 type OfferStatus = "accepted" | "pending" | "rejected" | "all";
 
-const MuiTableWithSearchSortFilter = () => {
+const OfferListTable = ({ loading }: { loading: boolean }) => {
   const [searchText, setSearchText] = useState("");
   const [sortColumn, setSortColumn] = useState<keyof DataItem | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -47,14 +47,18 @@ const MuiTableWithSearchSortFilter = () => {
   const [rowsPerPage, setRowsPerPage] = useState<number>(5);
   const [rows, setRows] = useState<number>(0);
 
-  // Fetch table data based on page and rowsPerPage
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getTableData();
-      paginateTable(data);
+      try {
+        const data = await getTableData();
+        data && paginateTable(data);
+      } catch (error) {
+        console.error("failed to fetch offer list");
+      }
     };
     fetchData();
   }, []);
+
   useEffect(() => {
     paginateTable(tableData);
   }, [page, rowsPerPage]);
@@ -69,7 +73,7 @@ const MuiTableWithSearchSortFilter = () => {
     const query = `page=${page + 1}&per_page=${40}`;
     const result = await getOfferList(query);
     setRows(result?.meta.total || 0);
-    return result.data;
+    return result?.data;
   };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,7 +95,6 @@ const MuiTableWithSearchSortFilter = () => {
     settypeFilter(event.target.value as DataItem["type"]);
   };
 
-  // Handle status filter changes via Tabs
   const handleStatusFilterChange = (
     event: React.SyntheticEvent,
     newValue: OfferStatus
@@ -117,7 +120,6 @@ const MuiTableWithSearchSortFilter = () => {
     setPage(0);
   };
 
-  // Filter data: by search text, typeFilter, and statusFilter
   const filteredData: FilteredDataItem[] = (displayedData || [])
     .filter((item: DataItem) => {
       const searchRegex = new RegExp(searchText, "i");
@@ -136,7 +138,6 @@ const MuiTableWithSearchSortFilter = () => {
       return item.status === statusFilter;
     });
 
-  // Sort filtered data if sortColumn is selected
   const sortedData = sortColumn
     ? [...filteredData].sort((a, b) => {
         const aValue = a[sortColumn];
@@ -152,9 +153,51 @@ const MuiTableWithSearchSortFilter = () => {
       })
     : filteredData;
 
-  return (
-    <Box sx={{ width: "100%" }} boxShadow={3}>
-      <Box padding={3}>
+  const renderSkeleton = () => (
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            {columns.map((column) => (
+              <TableCell key={column.id}>
+                <Skeleton variant='text' width={100} animation='wave' />{" "}
+              </TableCell>
+            ))}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {[...Array(rowsPerPage)].map(
+            (
+              _,
+              index // Create skeleton rows
+            ) => (
+              <TableRow key={index}>
+                {columns.map((column) => (
+                  <TableCell key={column.id}>
+                    <Skeleton
+                      variant='rectangular'
+                      height={40}
+                      animation='wave'
+                    />{" "}
+                  </TableCell>
+                ))}
+              </TableRow>
+            )
+          )}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  return loading ? (
+    renderSkeleton()
+  ) : (
+    <Box
+      padding={2}
+      sx={{ width: "100%" }}
+      boxShadow='0px 0px 2px rgba(145, 158, 171, 0.2), 0px 12px 24px -4px rgba(145, 158, 171, 0.12)'
+    >
+      <Box>
         <Box>
           <Typography variant='h4' component='header'>
             Offer List
@@ -172,8 +215,8 @@ const MuiTableWithSearchSortFilter = () => {
             <StyledTab label='Rejected' value='rejected' />
           </StyledTabs>
         </Box>
-        <Grid container spacing={6}>
-          <Grid item md={6} sm={12}>
+        <Grid container spacing={2}>
+          <Grid item md={6} sm={12} xs={12}>
             <TextField
               placeholder='Search...'
               variant='outlined'
@@ -189,8 +232,7 @@ const MuiTableWithSearchSortFilter = () => {
               sx={{ mb: 2, width: "100%" }}
             />
           </Grid>
-          <Grid item md={2} sm={12}>
-            {/* Type Filter as a select input */}
+          <Grid item md={2} sm={12} xs={12}>
             <FormControl sx={{ mb: 2, width: "100%" }}>
               <InputLabel id='type-filter-label'>Type</InputLabel>
               <Select
@@ -281,4 +323,4 @@ const MuiTableWithSearchSortFilter = () => {
   );
 };
 
-export default MuiTableWithSearchSortFilter;
+export default OfferListTable;

@@ -1,6 +1,4 @@
-// components/CreateOfferForm.tsx
 "use client";
-
 import * as React from "react";
 import { useState, useEffect } from "react";
 import {
@@ -24,17 +22,23 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createOffer, getUsers } from "@/lib/apiClient"; // Import your API function
+import { createOffer, getUsers } from "@/lib/apiClient";
 import { CreateOfferFormData, CreateOfferFormSchema } from "@/lib/validations";
 import { Checkbox } from "@mui/material";
 import dayjs from "dayjs";
 import SuccessModal from "@/theme/overrides/components/SuccessModal";
+import { debounce } from "lodash";
 
 const CreateOfferForm = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [error, setError] = useState("");
   const {
     control,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<CreateOfferFormData>({
     resolver: zodResolver(CreateOfferFormSchema),
     defaultValues: {
@@ -55,11 +59,9 @@ const CreateOfferForm = () => {
         );
       } else {
         console.error("Failed to fetch users or API returned null/undefined");
-        // Handle the error (e.g., display a message)
       }
     } catch (error) {
       console.error("Error fetching users:", error);
-      // Handle the error
     } finally {
       setLoadingUsers(false);
     }
@@ -71,37 +73,34 @@ const CreateOfferForm = () => {
   const [loadingUsers, setLoadingUsers] = useState(false);
 
   useEffect(() => {
-    //fetchUsers(); // Initial fetch
     return () => {
       setUserOptions([]);
     };
   }, []);
 
+  const debouncedFetchUsers = debounce(fetchUsers, 1000);
+
   const handleSearchChange = (event: React.ChangeEvent<{}>, value: string) => {
-    if (value.length > 3) {
-      fetchUsers(value);
-    } else {
-      //fetchUsers();
-    }
+    debouncedFetchUsers(value);
   };
-  const [isLoading, setIsLoading] = useState(false); // Loading state for button
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(""); // Store the success message
 
   const onSubmit = async (data: CreateOfferFormData) => {
     setIsLoading(true);
     try {
-      const response = await createOffer(data);
-      // Handle successful offer creation (e.g., show success message, reset form)
-      console.log("Offer created successfully:", response);
+      const res = await createOffer(data);
+      if (res?.errors) {
+        setError("Error creating offer");
+        return;
+      }
+      reset();
+      setError("");
       setSuccessMessage("The onboarding offer has been sent to the new user.");
-      setIsSuccessModalOpen(true); // Open success modal
+      setIsSuccessModalOpen(true);
     } catch (error) {
-      // Handle error (e.g., display error message)
+      setError("Error creating offer");
       console.error("Error creating offer:", error);
-      // Optionally, you can show a MUI Snackbar or other notification component here.
     } finally {
-      setIsLoading(false); // Set loading to false after request completes
+      setIsLoading(false);
     }
   };
   const handleCheckboxChange = (
@@ -235,7 +234,7 @@ const CreateOfferForm = () => {
                   name='additions'
                   control={control}
                   render={({ field }) => (
-                    <Box style={{ marginTop: "10px" }}>
+                    <Box style={{ marginTop: ".5rem" }}>
                       <FormGroup row>
                         <FormControlLabel
                           control={
@@ -255,7 +254,7 @@ const CreateOfferForm = () => {
                               style={{ color: "#00a76f" }}
                               checked={field.value.includes("on_demand")}
                               onChange={(event) =>
-                                handleCheckboxChange(event, field, "on-demand")
+                                handleCheckboxChange(event, field, "on_demand")
                               }
                             />
                           }
@@ -274,11 +273,6 @@ const CreateOfferForm = () => {
                           label='Negotiable'
                         />
                       </FormGroup>
-                      {errors.additions && (
-                        <Typography color='error'>
-                          {errors.additions.message}
-                        </Typography>
-                      )}
                     </Box>
                   )}
                 />
@@ -303,29 +297,28 @@ const CreateOfferForm = () => {
                 <Controller
                   name='user_id'
                   control={control}
-                  render={(
-                    { field, fieldState: { error } } // Access error here
-                  ) => (
+                  render={({ field, fieldState: { error } }) => (
                     <Autocomplete
                       options={userOptions}
                       getOptionLabel={(option) => option.name}
                       isOptionEqualToValue={(option, value) =>
                         option.id === value.id
                       }
+                      sx={{ marginTop: ".5rem" }}
                       loading={loadingUsers}
                       renderInput={(params) => (
                         <TextField
+                          defaultValue={""}
                           placeholder='User Name'
                           {...params}
                           error={!!error}
-                          helperText={error?.message}
                           onChange={(event) =>
                             handleSearchChange(event, event.target.value)
                           }
                         />
                       )}
                       onChange={(event, newValue) => {
-                        field.onChange(newValue ? newValue.id : ""); // Store the ID, not the name
+                        field.onChange(newValue ? newValue.id : "");
                       }}
                     />
                   )}
@@ -355,12 +348,12 @@ const CreateOfferForm = () => {
                   render={({ field }) => (
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <DatePicker
-                        sx={{ width: "100%", marginTop: "10px" }}
-                        value={field.value ? dayjs(field.value) : null} // Convert string to dayjs object
+                        sx={{ width: "100%", marginTop: ".5rem" }}
+                        value={field.value ? dayjs(field.value) : null}
                         onChange={(newValue) => {
                           field.onChange(
                             newValue ? dayjs(newValue).format("YYYY-MM-DD") : ""
-                          ); // Convert dayjs to string
+                          );
                         }}
                       />
                     </LocalizationProvider>
@@ -389,15 +382,15 @@ const CreateOfferForm = () => {
                   control={control}
                   render={({ field }) => (
                     <TextField
-                      style={{ marginTop: "10px" }}
+                      style={{ marginTop: ".5rem" }}
                       fullWidth
                       type='number'
                       {...field}
                       placeholder='$ Price'
                       error={!!errors.price}
                       onChange={(event) => {
-                        const parsedValue = parseFloat(event.target.value); // Parse to float
-                        field.onChange(isNaN(parsedValue) ? "" : parsedValue); // Handle NaN
+                        const parsedValue = parseFloat(event.target.value);
+                        field.onChange(isNaN(parsedValue) ? "" : parsedValue);
                       }}
                     />
                   )}
@@ -407,20 +400,27 @@ const CreateOfferForm = () => {
                 )}
               </Grid>
             </Grid>
+            <Grid>
+              {error !== "" && (
+                <Typography variant='h6' component='sub' color='error'>
+                  {error}
+                </Typography>
+              )}
+            </Grid>
           </CardContent>
         </Card>
         <Grid item xs={12} display='flex' justifyContent='end'>
           {" "}
-          {/* Use flexbox for centering */}
           <Button
             variant='contained'
             color='secondary'
             type='submit'
             disabled={isLoading}
             sx={{
+              width: "120px",
               bgcolor: "#000",
               py: 1.5,
-              px: 4,
+              px: 1,
               mt: 2,
               "&:hover": {
                 bgcolor: "#333",
@@ -430,7 +430,7 @@ const CreateOfferForm = () => {
                 outlineOffset: 2,
               },
             }}
-            aria-label={isLoading ? "Sending offer..." : "Send offer"}
+            aria-label={isLoading ? "Sending..." : "Send offer"}
           >
             {isLoading ? (
               <CircularProgress size={20} color='inherit' />

@@ -26,7 +26,6 @@ const WebsiteVisitsChart = ({
 
   const options: ApexOptions = {
     chart: {
-      height: 300,
       fontFamily: theme.typography.fontFamily,
       type: "bar",
       toolbar: {
@@ -79,7 +78,7 @@ const WebsiteVisitsChart = ({
     },
   ];
 
-  return <Chart options={options} series={series} type='bar' height={300} />;
+  return <Chart options={options} series={series} type='bar' height={400} />;
 };
 
 export default WebsiteVisitsChart;

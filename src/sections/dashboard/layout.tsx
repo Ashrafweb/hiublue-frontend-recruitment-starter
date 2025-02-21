@@ -21,28 +21,24 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import Image, { StaticImageData } from "next/image";
+import Image from "next/image";
 import MenuIcon from "@mui/icons-material/Menu";
+import { useAuth } from "@/context/auth-context";
+import { useRouter } from "next/navigation";
 
-// Assets
-import avatarUrl from "public/Img_Avatar.svg";
-import dashboardIcon from "public/dashboard_icon.svg";
-import onboardingIcon from "public/onboarding_icon.svg";
-
-// Constants
 const DRAWER_WIDTH = 240;
-const COLLAPSED_WIDTH = 70;
+const COLLAPSED_WIDTH = 64;
 
 const navItems = [
-  { text: "Dashboard", icon: dashboardIcon, path: "/" },
-  { text: "Onboarding", icon: onboardingIcon, path: "/onboarding" },
+  { text: "Dashboard", icon: "/dashboard_icon.svg", path: "/" },
+  { text: "Onboarding", icon: "/onboarding_icon.svg", path: "/onboarding" },
 ];
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
-
+  const { logout } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -55,16 +51,17 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         sx={{ zIndex: theme.zIndex.drawer + 1 }}
       >
         <Toolbar>
-          <IconButton
-            color='inherit'
-            aria-label='Toggle navigation menu'
-            edge='start'
-            onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
-
+          {isMobile && (
+            <IconButton
+              color='inherit'
+              aria-label='Toggle navigation menu'
+              edge='start'
+              onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
           <Typography
             variant='h6'
             component='a'
@@ -80,20 +77,15 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             />
           </Typography>
 
-          {/* Profile Avatar */}
           <IconButton
             color='inherit'
             aria-label='User menu'
             onClick={(e) => setAnchorEl(e.currentTarget)}
             sx={{ border: "1px solid #5BE49B", p: 0.5 }}
           >
-            <Avatar
-              src={(avatarUrl as StaticImageData).src}
-              alt='User Avatar'
-            />
+            <Avatar src='/Img_Avatar.svg' alt='User Avatar' />
           </IconButton>
 
-          {/* Profile Menu */}
           <Menu
             anchorEl={anchorEl}
             open={isMenuOpen}
@@ -102,7 +94,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             transformOrigin={{ horizontal: "right", vertical: "top" }}
             PaperProps={{ sx: { width: "120px" } }}
           >
-            <MenuItem sx={{ textAlign: "center" }}>Logout</MenuItem>
+            <MenuItem sx={{ textAlign: "center" }} onClick={() => logout()}>
+              Logout
+            </MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>
@@ -138,10 +132,10 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
           {navItems.map(({ text, icon, path }, index) => (
             <ListItem
+              href={path}
               key={index}
               disablePadding
               component='a'
-              href={path}
               style={{ color: "#000" }}
             >
               <ListItemButton>
@@ -161,8 +155,27 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         </List>
       </Drawer>
 
-      {/* Main Content */}
-      <Box component='main' sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+      <Box
+        component='main'
+        sx={{
+          flexGrow: 1,
+          p: isMobile ? 0 : 3,
+          mt: { xs: 8, md: 8 },
+          width: {
+            xs: "100%",
+            sm: `calc(100% - ${COLLAPSED_WIDTH}px)`,
+            md: `calc(100% - ${
+              isDrawerOpen ? DRAWER_WIDTH : COLLAPSED_WIDTH
+            }px)`,
+            lg: `calc(100% - ${
+              isDrawerOpen ? DRAWER_WIDTH : COLLAPSED_WIDTH
+            }px)`,
+            xl: `calc(100% - ${
+              isDrawerOpen ? DRAWER_WIDTH : COLLAPSED_WIDTH
+            }px)`,
+          },
+        }}
+      >
         {children}
       </Box>
     </Box>

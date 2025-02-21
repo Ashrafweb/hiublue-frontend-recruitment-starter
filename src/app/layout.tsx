@@ -7,9 +7,11 @@ import { AuthProvider } from "@/context/auth-context";
 
 export const metadata = {
   title: "hiublue",
+
   description:
     "Hiublue is a platform that offers unlimited SMS and iMessage integration, designed to streamline and enhance your messaging campaigns.",
-  viewport: "width=device-width, initial-scale=1.0, maximum-scale=1.0",
+  viewport:
+    "width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0",
 };
 
 export default function RootLayout(props: { children: React.ReactNode }) {
@@ -20,7 +22,6 @@ export default function RootLayout(props: { children: React.ReactNode }) {
           <InitColorSchemeScript attribute='class' />
           <AppRouterCacheProvider options={{ enableCssLayer: true }}>
             <ThemeProvider>
-              {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
               <CssBaseline />
               {props.children}
             </ThemeProvider>

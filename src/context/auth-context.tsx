@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } else if (pathname !== "/login") {
       redirect("/login");
     }
-  }, []);
+  }, [isAuthenticated, token]);
 
   const login = (token: string) => {
     setToken(token);
@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = () => {
     setToken(null);
     setIsAuthenticated(false);
+    localStorage.removeItem("user");
     localStorage.removeItem("token");
   };
 

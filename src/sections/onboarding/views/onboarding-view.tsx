@@ -1,7 +1,7 @@
 "use client";
 
 import { Box } from "@mui/material";
-import CreateOfferForm from "../CreateOfferForm";
+import CreateOfferForm from "../../../components/onboarding/CreateOfferForm";
 
 export default function OnboardingView() {
   return (

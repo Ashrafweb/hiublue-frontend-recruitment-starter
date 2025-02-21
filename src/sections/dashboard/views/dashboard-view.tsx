@@ -1,6 +1,6 @@
 "use client";
 
-import Charts from "@/components/charts";
+import StatsComponent from "@/components/stats";
 import OffersList from "@/components/Tables/OfferList";
 import {
   Box,
@@ -10,26 +10,30 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
-import DashboardCards from "../DashboardCards";
-import { useEffect, useState } from "react";
-import { getDashboardStats, getDashboardSummary } from "@/lib/apiClient";
+
+import { useEffect, useState, useTransition } from "react";
+import { getStats, getSummary } from "@/lib/apiClient";
 import { WeeklyData, CardData } from "@/types";
 import { ExpandMore } from "@mui/icons-material";
+import SummaryComponent from "@/components/cards/DashboardCards";
 
 export default function DashboardView() {
-  const [summaryData, setSummaryData] = useState<CardData | null>(null); // Use CardData type
-  const [stats, setStats] = useState<WeeklyData | null>(null); // Use WeeklyData type
+  const [summaryData, setSummaryData] = useState<CardData | null>(null);
+  const [stats, setStats] = useState<WeeklyData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<string>("this-week");
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const query = `?filter=${period}`;
-        const summary = await getDashboardSummary(query);
-        const stats = await getDashboardStats(query);
-
+        const [summary, stats] = await Promise.all([
+          getSummary(query),
+          getStats(query),
+        ]);
         if (!summary || !stats) {
           throw new Error("Failed to fetch data from API");
         }
@@ -37,30 +41,16 @@ export default function DashboardView() {
         setSummaryData(summary);
         setStats(stats);
       } catch (err: any) {
-        console.error("Error fetching data:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    startTransition(() => {
+      fetchData();
+    });
   }, [period]);
-
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "200px",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   if (error) {
     return (
@@ -78,24 +68,8 @@ export default function DashboardView() {
     );
   }
 
-  if (!summaryData || !stats) {
-    // Check for both summaryData and stats
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "200px",
-        }}
-      >
-        No data available
-      </Box>
-    );
-  }
-
   return (
-    <Box sx={{ flexGrow: 1, p: 3, maxWidth: "1500px", margin: "auto" }}>
+    <Box sx={{ flexGrow: 1, p: 2, maxWidth: "1500px", margin: "auto" }}>
       <Box sx={{ mb: 4, mx: 2 }}>
         <Grid container justifyContent='space-between'>
           <Typography variant='h3' component='h1' gutterBottom>
@@ -113,12 +87,12 @@ export default function DashboardView() {
           </Select>
         </Grid>
       </Box>
-      <DashboardCards cardData={summaryData} /> {/* Pass summaryData */}
+      <SummaryComponent cardData={summaryData} loading={loading} />{" "}
       <Box sx={{ mt: 4 }}>
-        <Charts stats={stats} /> {/* Pass stats */}
+        <StatsComponent stats={stats} loading={loading} />
       </Box>
       <Box sx={{ mt: 4 }}>
-        <OffersList />
+        <OffersList loading={loading} />
       </Box>
     </Box>
   );

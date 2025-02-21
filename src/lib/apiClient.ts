@@ -1,29 +1,26 @@
-// lib/api-client.ts
-
-import { TableData } from "@/components/Tables/OfferList/data";
+import { TableData } from "@/types";
 import { CardData, WeeklyData } from "@/types";
+import { cache } from "react";
+import { revalidateTag } from "next/cache";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "https://dummy-1.hiublue.com/api"; // Fallback to default
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://dummy-1.hiublue.com/api";
 
-// Function to get token from localStorage (avoiding useAuth())
 const getAuthToken = () => {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("token"); // Retrieve token from localStorage
+    return localStorage.getItem("token");
   }
   return null;
 };
 
-// Generic function to make API requests
 async function apiClient<T>(
   endpoint: string,
   method: string = "GET",
   body: any = null,
-  headers: Record<string, string> = {}
-): Promise<T> {
-  const token = localStorage.getItem("token") || null; // Get token from localStorage
-
-  // Add authorization header if token exists
+  headers: Record<string, string> = {},
+  cacheTag?: string
+): Promise<T | null> {
+  const token = await getAuthToken();
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
@@ -31,53 +28,76 @@ async function apiClient<T>(
   const options: RequestInit = {
     method,
     headers: {
-      "Content-Type": "application/json", // Default content type
-      ...headers, // Merge additional headers
+      "Content-Type": "application/json",
+      ...headers,
     },
   };
 
   if (body) {
-    if (typeof body === "object") {
-      options.body = JSON.stringify(body);
-    } else {
-      options.body = body; // For sending FormData or other non-JSON data
-    }
+    options.body = JSON.stringify(body);
+  } else {
+    (options.next = {
+      tags: cacheTag ? [cacheTag] : undefined,
+      revalidate: 60,
+    }),
+      (options.cache = "force-cache");
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+    });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        errorData?.message || `HTTP error! status: ${response.status}`
-      );
-    }
+    // if (!res.ok) {
+    //   throw new Error(`API error: ${res.status}`);
+    // }
 
-    return (await response.json()) as T;
-  } catch (error: any) {
-    console.error(`API request failed: ${error.message}`);
-    throw error;
+    return (await res.json()) as T;
+  } catch (error) {
+    console.error(`API request failed: ${endpoint}`, error);
+    return null;
   }
 }
+
+export const getSummary = cache(
+  async (query: string): Promise<CardData | null> => {
+    return apiClient(
+      `/dashboard/summary${query}`,
+      "GET",
+      null,
+      {},
+      "dashboard"
+    );
+  }
+);
+
+export const getStats = cache(
+  async (query: string): Promise<WeeklyData | null> => {
+    return apiClient(`/dashboard/stat${query}`, "GET", null, {}, "dashboard");
+  }
+);
+
+export const getOfferList = cache(
+  async (params: string): Promise<TableData | null> => {
+    return apiClient("/offers?" + params, "GET", null, {}, "offerList");
+  }
+);
+
+export const revalidateDashboard = async () => {
+  await revalidateTag("dashboard");
+};
+
+export const revalidateOfferList = async () => {
+  await revalidateTag("offerList");
+};
 
 export const loginApi = async (credentials: any): Promise<any> => {
   return apiClient("/login", "POST", credentials);
 };
 
-export const getDashboardSummary = async (
-  query: string
-): Promise<CardData | null> => {
-  return apiClient("/dashboard/summary" + query, "GET");
-};
-
-export const getDashboardStats = async (
-  query: string
-): Promise<WeeklyData | null> => {
-  return apiClient("/dashboard/stat" + query, "GET");
-};
-
-export const createOffer = async (offerData: any) => {
+export const createOffer = async (
+  offerData: any
+): Promise<{ message: string; data?: {}; errors?: {} } | null> => {
   return apiClient("/offers", "POST", offerData);
 };
 
@@ -85,7 +105,4 @@ export const getUsers = async (params: string): Promise<any> => {
   return apiClient("/users?" + params, "GET");
 };
 
-export const getOfferList = async (params: string): Promise<TableData> => {
-  return apiClient("/offers" + "?" + params, "GET");
-};
 export default apiClient;

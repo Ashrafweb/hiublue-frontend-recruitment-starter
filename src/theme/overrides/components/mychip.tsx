@@ -43,7 +43,8 @@ function MyChip({ status, label }: { status: string; label: string | number }) {
         paddingX: 1.5,
         fontSize: "0.875rem",
         fontWeight: 600,
-        minWidth: "100px", // Ensures all chips have the same width
+        width: "fit-content",
+        minWidth: "120px", // Ensures all chips have the same width
         display: "flex",
         justifyContent: "center", // Centers the text
         "&:hover": {

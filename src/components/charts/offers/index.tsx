@@ -43,7 +43,7 @@ const OffersSentChart = ({ offers_sent }: { offers_sent: OffersSentType }) => {
     },
   ];
 
-  return <Chart options={options} series={series} type='line' height={300} />;
+  return <Chart options={options} series={series} type='line' height={400} />;
 };
 
 export default OffersSentChart;

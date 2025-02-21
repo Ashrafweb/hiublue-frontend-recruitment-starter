@@ -15,14 +15,16 @@ export const loginSchema = z.object({
 export type LoginFormData = z.infer<typeof loginSchema>;
 
 export const CreateOfferFormSchema = z.object({
-  plan_type: z.enum(["monthly", "yearly", "pay_as_you_go"]), // Add other plan types if needed
-  additions: z.array(z.enum(["refundable", "on_demand", "negotiable"])), // Add other addition types
-  user_id: z.number().int().positive(), // Ensure it's an integer and positive
-  expired: z.string().refine(
+  plan_type: z.enum(["monthly", "yearly", "pay_as_you_go"]),
+  additions: z
+    .array(z.enum(["refundable", "on_demand", "negotiable"]))
+    .min(1, { message: "Please select at least one" }),
+  user_id: z.number({ message: "Please select a user" }).int().positive(),
+  expired: z.string({ message: "Expired Date is required" }).refine(
     (dateString) => {
       try {
         const date = new Date(dateString);
-        return !isNaN(date.getTime()); // Check if it's a valid date
+        return !isNaN(date.getTime());
       } catch (error) {
         return false;
       }
@@ -31,7 +33,7 @@ export const CreateOfferFormSchema = z.object({
       message: "Invalid date format. Use YYYY-MM-DD.",
     }
   ),
-  price: z.number().positive(), // Price should be a positive number
+  price: z.number().positive(),
 });
 
 export type CreateOfferFormData = z.infer<typeof CreateOfferFormSchema>;

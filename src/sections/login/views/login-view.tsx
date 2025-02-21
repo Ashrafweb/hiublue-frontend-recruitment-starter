@@ -24,7 +24,6 @@ import MuiCard from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
 import CircularProgress from "@mui/material/CircularProgress";
 
-// Styled Components
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
@@ -68,12 +67,11 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function SignIn() {
-  const { login } = useAuth(); // Get login function from Auth Context
+  const { login } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // React Hook Form setup
   const {
     register,
     handleSubmit,
@@ -82,21 +80,21 @@ export default function SignIn() {
     resolver: zodResolver(loginSchema),
   });
 
-  // Handle form submission
   const onSubmit = async (data: LoginFormData) => {
     console.log(data);
     setLoading(true);
     setError("");
 
     try {
-      const response = await loginApi(data); // Call API to authenticate user
-
-      // Save token and user data
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("user", JSON.stringify(response.user));
-
-      login(response.token); // Update auth state
-      router.push("/"); // Redirect to dashboard
+      const response = await loginApi(data);
+      console.log(response);
+      if (response.error) {
+        setError("Invalid email or password");
+      } else {
+        localStorage.setItem("user", JSON.stringify(response.user));
+        login(response.token);
+        router.push("/");
+      }
     } catch (err: any) {
       setError(err.message || "Login failed");
     } finally {
@@ -128,7 +126,6 @@ export default function SignIn() {
               gap: 2,
             }}
           >
-            {/* Email Field */}
             <FormControl>
               <FormLabel htmlFor='email'>Email</FormLabel>
               <TextField
@@ -145,7 +142,6 @@ export default function SignIn() {
               />
             </FormControl>
 
-            {/* Password Field */}
             <FormControl>
               <FormLabel htmlFor='password'>Password</FormLabel>
               <TextField
@@ -163,30 +159,32 @@ export default function SignIn() {
             </FormControl>
 
             <FormControlLabel
-              control={<Checkbox value='remember' color='primary' />}
+              control={<Checkbox value='remember' color='default' />}
               label='Remember me'
             />
 
-            {/* Error Message */}
             {error && <Typography color='error'>{error}</Typography>}
 
-            {/* Submit Button */}
             <Button
               type='submit'
               fullWidth
               variant='contained'
               disabled={loading}
+              color='inherit'
             >
-              {loading ? <CircularProgress size={24} /> : "Sign in"}
+              {loading ? (
+                <CircularProgress color='success' size={24} />
+              ) : (
+                "Sign in"
+              )}
             </Button>
 
-            {/* Forgot Password Link */}
             <Link
               component='button'
               type='button'
               onClick={() => {}}
               variant='body2'
-              sx={{ alignSelf: "center" }}
+              sx={{ alignSelf: "center", color: "#000" }}
             >
               Forgot your password?
             </Link>

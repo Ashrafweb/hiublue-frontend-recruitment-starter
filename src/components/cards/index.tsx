@@ -8,15 +8,13 @@ import {
   Box,
 } from "@mui/material";
 import Image from "next/image";
-import altArrowUp from "public/alt-arrow-up-bold-duotone.svg";
-import altArrowDown from "public/alt-arrow-down-bold-duotone.svg";
 import { formatPercentageChange } from "@/lib/formatData";
 
 interface CardProps {
   title: string;
   currentValue: number;
   previousValue: number;
-  unit?: string; // Optional unit (e.g., 'k', '%')
+  unit?: string;
 }
 
 const SummaryCard = ({
@@ -34,7 +32,11 @@ const SummaryCard = ({
   const isPositive = percentageChange > 0;
   const isNegative = percentageChange < 0;
 
-  const icon = isPositive ? altArrowUp : isNegative ? altArrowDown : null;
+  const icon = isPositive
+    ? "/alt-arrow-up-bold-duotone.svg"
+    : isNegative
+    ? "/alt-arrow-down-bold-duotone.svg"
+    : null;
 
   return (
     <Card sx={{ width: "100%", boxShadow: 3, height: "100%" }}>
@@ -56,12 +58,10 @@ const SummaryCard = ({
             gap: 1.5,
           }}
         >
-          {/* Title */}
           <Typography variant='h6' component='h2' fontWeight={600}>
             {title}
           </Typography>
 
-          {/* Current Value */}
           <Typography
             variant='h3'
             fontWeight={700}
@@ -71,7 +71,6 @@ const SummaryCard = ({
             {unit}
           </Typography>
 
-          {/* Change Percentage */}
           <Box display='flex' alignItems='center' gap={0.8}>
             {icon && (
               <Image
