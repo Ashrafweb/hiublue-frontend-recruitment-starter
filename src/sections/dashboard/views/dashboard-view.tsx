@@ -16,12 +16,12 @@ import { getStats, getSummary } from "@/lib/apiClient";
 import { WeeklyData, CardData } from "@/types";
 import { ExpandMore } from "@mui/icons-material";
 import SummaryComponent from "@/components/cards/DashboardCards";
+import { revalidateDashboard } from "@/lib/actions";
 
 export default function DashboardView() {
   const [summaryData, setSummaryData] = useState<CardData | null>(null);
   const [stats, setStats] = useState<WeeklyData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<string>("this-week");
 
@@ -29,6 +29,7 @@ export default function DashboardView() {
     const fetchData = async () => {
       setLoading(true);
       try {
+        await revalidateDashboard();
         const query = `?filter=${period}`;
         const [summary, stats] = await Promise.all([
           getSummary(query),
@@ -46,10 +47,7 @@ export default function DashboardView() {
         setLoading(false);
       }
     };
-
-    startTransition(() => {
-      fetchData();
-    });
+    fetchData();
   }, [period]);
 
   if (error) {

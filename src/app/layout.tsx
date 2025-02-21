@@ -4,10 +4,8 @@ import CssBaseline from "@mui/material/CssBaseline";
 import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
 import ThemeProvider from "@/theme/index";
 import { AuthProvider } from "@/context/auth-context";
-
 export const metadata = {
   title: "hiublue",
-
   description:
     "Hiublue is a platform that offers unlimited SMS and iMessage integration, designed to streamline and enhance your messaging campaigns.",
   viewport:

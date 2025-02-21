@@ -24,6 +24,9 @@ async function apiClient<T>(
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
+  const controller = new AbortController();
+  const signal = controller.signal;
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
 
   const options: RequestInit = {
     method,
@@ -31,6 +34,7 @@ async function apiClient<T>(
       "Content-Type": "application/json",
       ...headers,
     },
+    signal,
   };
 
   if (body) {
@@ -47,7 +51,7 @@ async function apiClient<T>(
     const res = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
     });
-
+    clearTimeout(timeoutId);
     // if (!res.ok) {
     //   throw new Error(`API error: ${res.status}`);
     // }

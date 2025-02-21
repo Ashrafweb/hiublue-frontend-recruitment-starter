@@ -24,7 +24,6 @@ import {
 import Image from "next/image";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useAuth } from "@/context/auth-context";
-import { useRouter } from "next/navigation";
 
 const DRAWER_WIDTH = 240;
 const COLLAPSED_WIDTH = 64;
@@ -70,8 +69,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           >
             <Image
               src='/hiublue.png'
-              width={30}
-              height={30}
+              width={35}
+              height={35}
               alt='HIU Logo'
               priority
             />
