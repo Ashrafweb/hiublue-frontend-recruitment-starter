@@ -119,7 +119,7 @@ const OfferListTable = () => {
     setPage(0);
   };
 
-  const filteredData: FilteredDataItem[] = (displayedData || [])
+  const filteredData: FilteredDataItem[] = (tableData || [])
     .filter((item: DataItem) => {
       const searchRegex = new RegExp(searchText, "i");
       return Object.values(item).some((value) =>
@@ -138,18 +138,20 @@ const OfferListTable = () => {
     });
 
   const sortedData = sortColumn
-    ? [...filteredData].sort((a, b) => {
-        const aValue = a[sortColumn];
-        const bValue = b[sortColumn];
+    ? [...filteredData]
+        .sort((a, b) => {
+          const aValue = a[sortColumn];
+          const bValue = b[sortColumn];
 
-        if (aValue < bValue) {
-          return sortDirection === "asc" ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortDirection === "asc" ? 1 : -1;
-        }
-        return 0;
-      })
+          if (aValue < bValue) {
+            return sortDirection === "asc" ? -1 : 1;
+          }
+          if (aValue > bValue) {
+            return sortDirection === "asc" ? 1 : -1;
+          }
+          return 0;
+        })
+        .slice(0, rowsPerPage)
     : filteredData;
 
   const renderSkeleton = () => (
