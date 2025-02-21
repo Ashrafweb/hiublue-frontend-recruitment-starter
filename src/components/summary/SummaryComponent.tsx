@@ -6,8 +6,9 @@ import { CardData } from "@/types";
 const SummaryComponent = (props: {
   cardData: CardData | null;
   loading: boolean;
+  isPending: boolean;
 }) => {
-  const { cardData, loading } = props;
+  const { cardData, loading, isPending } = props;
 
   const renderSkeletons = () => (
     <Box
@@ -31,7 +32,7 @@ const SummaryComponent = (props: {
     </Box>
   );
 
-  return loading ? (
+  return loading || isPending ? (
     renderSkeletons()
   ) : cardData ? (
     <Box

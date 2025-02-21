@@ -13,7 +13,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Avatar,
   Menu,
   MenuItem,
   Typography,
@@ -24,6 +23,8 @@ import {
 import Image from "next/image";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useAuth } from "@/context/auth-context";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const DRAWER_WIDTH = 240;
 const COLLAPSED_WIDTH = 64;
@@ -34,12 +35,16 @@ const navItems = [
 ];
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const pathname = usePathname();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  // Keep sidebar open by default on larger screens, closed on mobile
+  const [isDrawerOpen, setIsDrawerOpen] = useState(!isMobile);
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
   const { logout } = useAuth();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -82,7 +87,12 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             onClick={(e) => setAnchorEl(e.currentTarget)}
             sx={{ border: "1px solid #5BE49B", p: 0.5 }}
           >
-            <Avatar src='/Img_Avatar.svg' alt='User Avatar' />
+            <Image
+              width={40}
+              height={40}
+              src='/img_Avatar.svg'
+              alt='User Avatar'
+            />
           </IconButton>
 
           <Menu
@@ -104,7 +114,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
       <Drawer
         variant={isMobile ? "temporary" : "permanent"}
         open={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
+        onClose={() => isMobile && setIsDrawerOpen(false)}
         sx={{
           width: isDrawerOpen ? DRAWER_WIDTH : COLLAPSED_WIDTH,
           flexShrink: 0,
@@ -129,28 +139,41 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             </Typography>
           </ListItem>
 
-          {navItems.map(({ text, icon, path }, index) => (
-            <ListItem
-              href={path}
-              key={index}
-              disablePadding
-              component='a'
-              style={{ color: "#000" }}
-            >
-              <ListItemButton>
-                <ListItemIcon>
-                  <Image
-                    src={icon}
-                    alt={`${text} icon`}
-                    width={30}
-                    height={30}
-                    priority
-                  />
-                </ListItemIcon>
-                {isDrawerOpen && <ListItemText primary={text} />}
-              </ListItemButton>
-            </ListItem>
-          ))}
+          {navItems.map(({ text, icon, path }, index) => {
+            const isActive = pathname === path;
+            return (
+              <Link
+                key={index}
+                href={path}
+                passHref
+                style={{ textDecoration: "none" }}
+              >
+                <ListItem disablePadding>
+                  <ListItemButton
+                    sx={{
+                      backgroundColor: isActive ? "#5BE49B" : "transparent",
+                      "&:hover": { backgroundColor: "#E0F6EB" },
+                      borderRadius: "8px",
+                      mx: 1,
+                      mb: 1,
+                      color: "#000000",
+                    }}
+                  >
+                    <ListItemIcon>
+                      <Image
+                        src={icon}
+                        alt={`${text} icon`}
+                        width={30}
+                        height={30}
+                        priority
+                      />
+                    </ListItemIcon>
+                    {isDrawerOpen && <ListItemText primary={text} />}
+                  </ListItemButton>
+                </ListItem>
+              </Link>
+            );
+          })}
         </List>
       </Drawer>
 

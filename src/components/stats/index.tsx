@@ -7,10 +7,11 @@ import { WeeklyData } from "@/types";
 interface ChartsProps {
   stats: WeeklyData | null;
   loading: boolean;
+  isPending: boolean;
 }
 
 const StatsComponent = (props: ChartsProps) => {
-  const { stats, loading } = props;
+  const { stats, loading, isPending } = props;
 
   const renderSkeleton = () => (
     <Box sx={{ flexGrow: 1, padding: 2 }}>
@@ -41,7 +42,7 @@ const StatsComponent = (props: ChartsProps) => {
     </Box>
   );
 
-  return loading ? (
+  return loading || isPending ? (
     renderSkeleton()
   ) : stats ? (
     <Box sx={{ flexGrow: 1, padding: 0 }}>

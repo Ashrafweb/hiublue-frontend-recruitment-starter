@@ -3,8 +3,9 @@
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import { useTheme } from "@mui/material";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { WebsiteVisitType } from "@/types";
+
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const WebsiteVisitsChart = ({
@@ -23,16 +24,28 @@ const WebsiteVisitsChart = ({
   );
 
   const theme = useTheme();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const options: ApexOptions = {
     chart: {
       fontFamily: theme.typography.fontFamily,
       type: "bar",
-      toolbar: {
-        show: false,
-      },
+      toolbar: { show: false },
+      height: isMobile ? 300 : 400,
     },
-
     colors: [theme.palette.success.main, theme.palette.info.main],
     stroke: { show: true, width: 4, colors: ["transparent"] },
     plotOptions: {
@@ -43,21 +56,16 @@ const WebsiteVisitsChart = ({
         distributed: false,
       },
     },
-    dataLabels: {
-      enabled: false,
-    },
+    dataLabels: { enabled: false },
     legend: {
       position: "top",
       horizontalAlign: "right",
       markers: { shape: "circle" },
     },
-
     xaxis: {
       categories: Object.keys(website_visits).map((day) => day.substring(0, 3)),
     },
-    yaxis: {
-      title: { text: "" },
-    },
+    yaxis: { title: { text: "" } },
     title: {
       text: "Website Visits",
       style: {
@@ -78,7 +86,7 @@ const WebsiteVisitsChart = ({
     },
   ];
 
-  return <Chart options={options} series={series} type='bar' height={400} />;
+  return <Chart options={options} series={series} type='bar' />;
 };
 
 export default WebsiteVisitsChart;

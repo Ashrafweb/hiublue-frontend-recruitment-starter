@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import { useTheme } from "@mui/material";
 import { OffersSentType } from "@/types";
+import { useState, useEffect } from "react";
+
 const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 const OffersSentChart = ({ offers_sent }: { offers_sent: OffersSentType }) => {
@@ -13,9 +15,25 @@ const OffersSentChart = ({ offers_sent }: { offers_sent: OffersSentType }) => {
     y: count as number,
   }));
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Check on mount and on resize
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    handleResize(); // Initial check
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   const options: ApexOptions = {
     chart: {
-      height: 450,
+      height: isMobile ? 300 : 450,
       type: "line",
       zoom: { enabled: false },
       toolbar: { show: false },
@@ -30,7 +48,6 @@ const OffersSentChart = ({ offers_sent }: { offers_sent: OffersSentType }) => {
         fontWeight: 700,
       },
     },
-
     xaxis: {
       categories: Object.keys(offers_sent).map((day) => day.substring(0, 3)),
     },
@@ -43,7 +60,7 @@ const OffersSentChart = ({ offers_sent }: { offers_sent: OffersSentType }) => {
     },
   ];
 
-  return <Chart options={options} series={series} type='line' height={400} />;
+  return <Chart options={options} series={series} type='line' />;
 };
 
 export default OffersSentChart;

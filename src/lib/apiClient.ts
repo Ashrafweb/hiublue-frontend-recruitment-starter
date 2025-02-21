@@ -1,6 +1,6 @@
+import axios, { AxiosRequestConfig } from "axios";
 import { TableData } from "@/types";
 import { CardData, WeeklyData } from "@/types";
-import { cache } from "react";
 import { revalidateTag } from "next/cache";
 
 const API_BASE_URL =
@@ -13,70 +13,57 @@ const getAuthToken = () => {
   return null;
 };
 
+const apiInstance = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { "Content-Type": "application/json" },
+});
+
+// API Client
 async function apiClient<T>(
   endpoint: string,
-  method: string = "GET",
+  method: "GET" | "POST",
   body: any = null,
-  headers: Record<string, string> = {},
   cacheTag?: string
 ): Promise<T | null> {
-  const token = await getAuthToken();
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
+  const token = getAuthToken();
+  const headers: Record<string, string> = token
+    ? { Authorization: `Bearer ${token}` }
+    : {};
 
-  const options: RequestInit = {
+  const config: AxiosRequestConfig = {
     method,
-    headers: {
-      "Content-Type": "application/json",
-      ...headers,
-    },
+    url: endpoint,
+    headers,
+    data: body ? JSON.stringify(body) : undefined,
   };
 
-  if (body) {
-    options.body = JSON.stringify(body);
-  } else {
-    options.next = {
-      revalidate: 1000,
-    };
-    options.cache = "default";
-  }
+  // if (!body) {
+  //   config.params = { cache: "force-cache", next: { revalidate: 3600 } };
+  // }
 
   try {
-    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-    });
-
-    return (await res.json()) as T;
+    const { data } = await apiInstance.request<T>(config);
+    return data;
   } catch (error) {
     console.error(`API request failed: ${endpoint}`, error);
     return null;
   }
 }
 
-export const getSummary = cache(
-  async (query: string): Promise<CardData | null> => {
-    return apiClient(
-      `/dashboard/summary${query}`,
-      "GET",
-      null,
-      {},
-      "dashboard"
-    );
-  }
-);
+// API Endpoints
+export const getSummary = async (query: string): Promise<CardData | null> => {
+  return apiClient(`/dashboard/summary${query}`, "GET", null, "dashboard");
+};
 
-export const getStats = cache(
-  async (query: string): Promise<WeeklyData | null> => {
-    return apiClient(`/dashboard/stat${query}`, "GET", null, {}, "dashboard");
-  }
-);
+export const getStats = async (query: string): Promise<WeeklyData | null> => {
+  return apiClient(`/dashboard/stat${query}`, "GET", null, "dashboard");
+};
 
-export const getOfferList = cache(
-  async (params: string): Promise<TableData | null> => {
-    return apiClient("/offers?" + params, "GET", null, {}, "offerList");
-  }
-);
+export const getOfferList = async (
+  params: string
+): Promise<TableData | null> => {
+  return apiClient(`/offers?${params}`, "GET", null, "offerList");
+};
 
 export const revalidateDashboard = async () => {
   await revalidateTag("dashboard");
@@ -97,7 +84,7 @@ export const createOffer = async (
 };
 
 export const getUsers = async (params: string): Promise<any> => {
-  return apiClient("/users?" + params, "GET");
+  return apiClient(`/users?${params}`, "GET");
 };
 
 export default apiClient;

@@ -15,7 +15,7 @@ import { useEffect, useState, useTransition } from "react";
 import { getStats, getSummary } from "@/lib/apiClient";
 import { WeeklyData, CardData } from "@/types";
 import { ExpandMore } from "@mui/icons-material";
-import SummaryComponent from "@/components/cards/DashboardCards";
+import SummaryComponent from "@/components/summary/SummaryComponent";
 import { revalidateDashboard } from "@/lib/actions";
 
 export default function DashboardView() {
@@ -24,6 +24,7 @@ export default function DashboardView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [period, setPeriod] = useState<string>("this-week");
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,12 +32,10 @@ export default function DashboardView() {
       try {
         await revalidateDashboard();
         const query = `?filter=${period}`;
-        const [summary, stats] = await Promise.all([
-          getSummary(query),
-          getStats(query),
-        ]);
+        const summary = await getSummary(query);
+        const stats = await getStats(query);
         if (!summary || !stats) {
-          throw new Error("Failed to fetch data from API");
+          setError("Failed to fetch data from API");
         }
 
         setSummaryData(summary);
@@ -47,7 +46,7 @@ export default function DashboardView() {
         setLoading(false);
       }
     };
-    fetchData();
+    startTransition(fetchData);
   }, [period]);
 
   if (error) {
@@ -77,20 +76,38 @@ export default function DashboardView() {
             labelId='week-range-label'
             id='week-range-select'
             value={period}
-            onChange={(e) => setPeriod(e.target.value)}
+            onChange={(e) => startTransition(() => setPeriod(e.target.value))}
             IconComponent={() => <ExpandMore />}
+            sx={{
+              minWidth: 150,
+              height: 40,
+              "@media (max-width: 600px)": {
+                minWidth: 120,
+                fontSize: "0.875rem",
+              },
+              "& .MuiSelect-select": {
+                padding: "8px 32px 8px 12px",
+              },
+              "& .MuiSvgIcon-root": {
+                right: "8px",
+              },
+            }}
           >
             <MenuItem value='this-week'>This Week</MenuItem>
             <MenuItem value='prev-week'>Previous Week</MenuItem>
           </Select>
         </Grid>
       </Box>
-      <SummaryComponent cardData={summaryData} loading={loading} />{" "}
+      <SummaryComponent
+        cardData={summaryData}
+        loading={loading}
+        isPending={isPending}
+      />{" "}
       <Box sx={{ mt: 4 }}>
-        <StatsComponent stats={stats} loading={loading} />
+        <StatsComponent stats={stats} loading={loading} isPending={isPending} />
       </Box>
       <Box sx={{ mt: 4 }}>
-        <OffersList loading={loading} />
+        <OffersList />
       </Box>
     </Box>
   );

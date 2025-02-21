@@ -8,24 +8,20 @@ export const metadata = {
   title: "hiublue",
   description:
     "Hiublue is a platform that offers unlimited SMS and iMessage integration, designed to streamline and enhance your messaging campaigns.",
-  viewport:
-    "width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1.0",
 };
 
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <html lang='en' suppressHydrationWarning>
-        <body>
-          <InitColorSchemeScript attribute='class' />
-          <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-            <ThemeProvider>
-              <CssBaseline />
-              {props.children}
-            </ThemeProvider>
-          </AppRouterCacheProvider>
-        </body>
-      </html>
-    </AuthProvider>
+    <html lang='en' suppressHydrationWarning>
+      <body>
+        <InitColorSchemeScript attribute='class' />
+        <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+          <ThemeProvider>
+            <CssBaseline />
+            <AuthProvider>{props.children}</AuthProvider>
+          </ThemeProvider>
+        </AppRouterCacheProvider>
+      </body>
+    </html>
   );
 }

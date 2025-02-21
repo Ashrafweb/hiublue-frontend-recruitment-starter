@@ -21,8 +21,6 @@ import {
   Grid,
   InputAdornment,
   TablePagination,
-  Tabs,
-  Tab,
   Typography,
   Skeleton,
 } from "@mui/material";
@@ -35,7 +33,7 @@ import { getOfferList } from "@/lib/apiClient";
 import { StyledTab, StyledTabs } from "@/theme/overrides/components/styledTabs";
 type OfferStatus = "accepted" | "pending" | "rejected" | "all";
 
-const OfferListTable = ({ loading }: { loading: boolean }) => {
+const OfferListTable = () => {
   const [searchText, setSearchText] = useState("");
   const [sortColumn, setSortColumn] = useState<keyof DataItem | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -46,7 +44,7 @@ const OfferListTable = ({ loading }: { loading: boolean }) => {
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(5);
   const [rows, setRows] = useState<number>(0);
-
+  const [loading, setLoading] = useState<boolean>(true);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -68,6 +66,7 @@ const OfferListTable = ({ loading }: { loading: boolean }) => {
     const endIndex = startIndex + rowsPerPage;
     setTableData(tbData);
     setDisplayedData(tbData.slice(startIndex, endIndex));
+    setLoading(false);
   };
   const getTableData = async () => {
     const query = `page=${page + 1}&per_page=${40}`;
